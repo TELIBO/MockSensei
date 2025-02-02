@@ -49,7 +49,4 @@ This AI interview mock web app offers several key benefits:
 3. **Confidence Building:** Reduces interview anxiety by allowing users to practice and improve in a safe, controlled setting.
 4. **Convenience:** Users can practice anytime, anywhere, making it a flexible and accessible tool for busy job seekers.
 
-## Call to Action
-
-Thank you for watching my presentation. If you are preparing for job interviews and want to boost your confidence and performance, give my AI interview mock web app a try. Visit our website https://interview-saathi-nine.vercel.app/ to start your journey to interview success. Good luck!
 
