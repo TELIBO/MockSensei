@@ -18,7 +18,7 @@ function Header() {
         <Image src={"/logo2.png"} width={50} height={100} alt="logo" />
         <span className="text-3xl ml-3 font-extrabold">MockMantra</span>
       </Link>
-      <ul className="hidden md:flex gap-6">
+      <ul className="hidden md:flex gap-6 ml-[20px]">
         <Link href={"/dashboard"}>
           <li
             className={`hover:text-blue-800 hover:font-bold transition-all
@@ -30,15 +30,8 @@ function Header() {
           </li>
         </Link>
 
-        <li
-          className={`hover:text-blue-800 hover:font-bold transition-all
-            cursor-pointer
-            ${path == "/dashboard/questions" && "text-blue-800 font-bold"}
-            `}
-        >
-          Questions
-        </li>
-        <Link href={"/dashboard/upgrade"}>
+        
+        {/* <Link href={"/dashboard/upgrade"}>
           <li
             className={`hover:text-blue-800 hover:font-bold transition-all
             cursor-pointer
@@ -47,7 +40,7 @@ function Header() {
           >
             Upgrade
           </li>
-        </Link>
+        </Link> */}
         <Link href={"/#howItWorks"}>
           <li
             className={`hover:text-blue-800 hover:font-bold transition-all
