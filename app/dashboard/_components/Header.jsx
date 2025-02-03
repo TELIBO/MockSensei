@@ -15,15 +15,15 @@ function Header() {
   return (
     <div className="flex p-4 items-center justify-between bg-secondary shadow-sm">
       <Link href={"/"} className="flex items-center space-x-2">
-        <Image src={"/logo.png"} width={50} height={100} alt="logo" />
-        <span className="text-3xl font-extrabold">Interview-Saathi.AI</span>
+        <Image src={"/logo2.png"} width={50} height={100} alt="logo" />
+        <span className="text-3xl ml-3 font-extrabold">MockMantra</span>
       </Link>
       <ul className="hidden md:flex gap-6">
         <Link href={"/dashboard"}>
           <li
-            className={`hover:text-primary hover:font-bold transition-all
+            className={`hover:text-blue-800 hover:font-bold transition-all
             cursor-pointer
-            ${path == "/dashboard" && "text-primary font-bold"}
+            ${path == "/dashboard" && "text-blue-800 font-bold"}
             `}
           >
             Dashboard
@@ -31,18 +31,18 @@ function Header() {
         </Link>
 
         <li
-          className={`hover:text-primary hover:font-bold transition-all
+          className={`hover:text-blue-800 hover:font-bold transition-all
             cursor-pointer
-            ${path == "/dashboard/questions" && "text-primary font-bold"}
+            ${path == "/dashboard/questions" && "text-blue-800 font-bold"}
             `}
         >
           Questions
         </li>
         <Link href={"/dashboard/upgrade"}>
           <li
-            className={`hover:text-primary hover:font-bold transition-all
+            className={`hover:text-blue-800 hover:font-bold transition-all
             cursor-pointer
-            ${path == "/dashboard/upgrade" && "text-primary font-bold"}
+            ${path == "/dashboard/upgrade" && "text-blue-800 font-bold"}
             `}
           >
             Upgrade
@@ -50,9 +50,9 @@ function Header() {
         </Link>
         <Link href={"/#howItWorks"}>
           <li
-            className={`hover:text-primary hover:font-bold transition-all
+            className={`hover:text-blue-800 hover:font-bold transition-all
             cursor-pointer
-            ${path == "/dashboard/how" && "text-primary font-bold"}
+            ${path == "/dashboard/how" && "text-blue-800 font-bold"}
             `}
           >
             How it Works?

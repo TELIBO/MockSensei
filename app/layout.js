@@ -6,9 +6,9 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Outfit({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Interview-Saathi.AI",
+  title: "MockMantra",
   description:
-    "Interview-Saathi.AI helps you practice for interview through AI mock interview",
+    "Your personal AI-coach",
 };
 
 export default function RootLayout({ children }) {
