@@ -35,6 +35,7 @@ function AddNewInterview() {
   const [jobExperience, setJobExperience] = useState();
   const [loading, setLoading] = useState(false);
   const [jsonResponse, setJsonResponse] = useState([]);
+  const [jobQuestions,setJobQuestions] = useState();
   const router = useRouter();
   const { user } = useUser();
   const onSubmit = async (e) => {
@@ -47,7 +48,7 @@ Job position: ${jobPosition},
 Interview round: ${interviewRound},
 Job Description: ${jobDesc},
 Years of Experience: ${jobExperience}.
-Based on the job position, description, and experience, give us exactly ${process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT} interview questions with their answers.
+Based on the job position, description, and experience, give us exactly ${jobQuestions} interview questions with their answers.
 Return ONLY a valid JSON array of objects, where each object has exactly:
 - "question": string
 - "answer": string
@@ -157,6 +158,17 @@ No markdown, no explanations, no extra text — just the JSON array.
                       max="100"
                       required
                       onChange={(event) => setJobExperience(event.target.value)}
+                    />
+                  </div>
+                  <div className=" my-3">
+                    <label> Number of Question You Want Between 1-10 </label>
+                    <Input
+                      placeholder="Ex.5"
+                      type="number"
+                      min="1"
+                      max="10"
+                      required
+                      onChange={(event) => setJobQuestions(event.target.value)}
                     />
                   </div>
                 </div>
