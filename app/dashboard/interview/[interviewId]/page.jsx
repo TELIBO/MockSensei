@@ -57,7 +57,8 @@ function Interview({ params }) {
               <strong>Information</strong>
             </h2>
             <h2 className="mt-3 text-yellow-500">
-              {process.env.NEXT_PUBLIC_INFORMATION}
+              Turn on your webcam and microphone to begin your AI-generated mock interview. You’ll face exactly the number of questions you chose — so if you picked 1, it’ll be quick; if you picked 10, buckle up. At the end, we’ll hand you a report showing how you did (and how you thought you did).
+NOTE: We never record your video — your priceless expressions are safe. And yes, you can turn off the webcam anytime if it starts silently judging you.
             </h2>
           </div>
         </div>
