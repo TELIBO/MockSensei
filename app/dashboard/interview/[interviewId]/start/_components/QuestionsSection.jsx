@@ -50,7 +50,7 @@ function QuestionsSection({ mockInterviewQuestion, activeQuestionIndex }) {
             <strong>Note:</strong>
           </h2>
           <h2 className="text-sm text-primary my-2">
-            {process.env.NEXT_PUBLIC_QUESTION_NOTE}
+            Click ‘Record Answer’ when you’re ready to unleash your genius (or panic, both are fine). At the end of the interview, we’ll hand you feedback along with the correct answers — so you can see just how close you were… or how spectacularly wrong. Think of it as karaoke night, but for your brain!
           </h2>
         </div>
       </div>
