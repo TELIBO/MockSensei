@@ -42,18 +42,17 @@ function AddNewInterview() {
     e.preventDefault();
     console.log(jobPosition, jobDesc, jobExperience, interviewRound);
 
-    const InputPrompt =
-      "Job position: " +
-      jobPosition +
-      ", Interview round: " +
-      interviewRound +
-      ", Job Description: " +
-      jobDesc +
-      ", Years of Experience : " +
-      jobExperience +
-      " , Depends on Job Position, Job Description & Years of Experience give us " +
-      process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT +
-      " Interview question along with Answer in JSON format, Give us question and answer field on JSON only nothing else";
+   const InputPrompt = `
+Job position: ${jobPosition},
+Interview round: ${interviewRound},
+Job Description: ${jobDesc},
+Years of Experience: ${jobExperience}.
+Based on the job position, description, and experience, give us exactly ${process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT} interview questions with their answers.
+Return ONLY a valid JSON array of objects, where each object has exactly:
+- "question": string
+- "answer": string
+No markdown, no explanations, no extra text — just the JSON array.
+`;
 
     const result = await chatSession.sendMessage(InputPrompt);
     const MockJsonResp = result.response
