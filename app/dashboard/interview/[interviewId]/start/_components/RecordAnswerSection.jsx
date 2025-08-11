@@ -39,59 +39,86 @@ function RecordAnswerSection({
     );
   }, [results]);
 
+  // Clear answers when question changes
+  useEffect(() => {
+    setUserAnswer("");
+    setResults([]);
+  }, [activeQuestionIndex]);
+
+  // Modified this useEffect to prevent multiple calls
   useEffect(() => {
     if (!isRecording && userAnswer?.length > 10) {
-      UpdateUserAnswer();
+      // Add a small delay and check if we're not already processing
+      const timer = setTimeout(() => {
+        if (!loading) {
+          UpdateUserAnswer();
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [userAnswer]);
+  }, [isRecording, userAnswer]); // Added isRecording as dependency
 
   const StartStopRecording = async () => {
     if (isRecording) {
       stopSpeechToText();
     } else {
+      // Clear any previous results before starting new recording
+      setUserAnswer("");
+      setResults([]);
       startSpeechToText();
     }
   };
 
   const UpdateUserAnswer = async () => {
-    console.log(userAnswer);
+    console.log("Processing answer:", userAnswer);
     setLoading(true);
-   const feedbackPrompt =
-  "Question: " +
-  mockInterviewQuestion[activeQuestionIndex]?.question +
-  ", User Answer: " +
-  userAnswer +
-  ". Based only on this question and answer, please provide: " +
-  "1) A numeric rating out of 5 for the answer. " +
-  "2) Feedback highlighting specific areas for improvement, if any, in 3 to 5 concise lines. " +
-  "Return ONLY a valid JSON object with two fields: 'rating' (number) and 'feedback' (string).";
+    
+    try {
+      const feedbackPrompt =
+        "Question: " +
+        mockInterviewQuestion[activeQuestionIndex]?.question +
+        ", User Answer: " +
+        userAnswer +
+        ". Based only on this question and answer, please provide: " +
+        "1) A numeric rating out of 5 for the answer. " +
+        "2) Feedback highlighting specific areas for improvement, if any, in 3 to 5 concise lines. " +
+        "Return ONLY a valid JSON object with two fields: 'rating' (number) and 'feedback' (string).";
 
+      const result = await chatSession.sendMessage(feedbackPrompt);
+      const mockJsonResp = result.response
+        .text()
+        .replace("```json", "")
+        .replace("```", "");
+      
+      console.log("AI Response:", mockJsonResp);
+      
+      const JsonFeedbackResp = JSON.parse(mockJsonResp);
+      
+      const resp = await db.insert(UserAnswer).values({
+        mockIdRef: interviewData?.mockId,
+        question: mockInterviewQuestion[activeQuestionIndex]?.question,
+        correctAns: mockInterviewQuestion[activeQuestionIndex]?.answer,
+        userAns: userAnswer,
+        feedback: JsonFeedbackResp?.feedback,
+        rating: JsonFeedbackResp?.rating,
+        userEmail: user?.primaryEmailAddress?.emailAddress,
+        createdAt: moment().format("DD-MM-yyyy"),
+      });
 
-    const result = await chatSession.sendMessage(feedbackPrompt);
-    const mockJsonResp = result.response
-      .text()
-      .replace("```json", "")
-      .replace("```", "");
-    const JsonFeedbackResp = JSON.parse(mockJsonResp);
-    const resp = await db.insert(UserAnswer).values({
-      mockIdRef: interviewData?.mockId,
-      question: mockInterviewQuestion[activeQuestionIndex]?.question,
-      correctAns: mockInterviewQuestion[activeQuestionIndex]?.answer,
-      userAns: userAnswer,
-      feedback: JsonFeedbackResp?.feedback,
-      rating: JsonFeedbackResp?.rating,
-      userEmail: user?.primaryEmailAddress?.emailAddress,
-      createdAt: moment().format("DD-MM-yyyy"),
-    });
+      console.log("Database insert result:", resp);
 
-    if (resp) {
-      toast("User Answer recorded successfully");
-      setUserAnswer("");
+      if (resp) {
+        toast.success("User Answer recorded successfully");
+        setUserAnswer("");
+        setResults([]);
+      }
+    } catch (error) {
+      console.error("Error in UpdateUserAnswer:", error);
+      toast.error("Failed to save answer: " + error.message);
+    } finally {
       setResults([]);
+      setLoading(false);
     }
-    setResults([]);
-
-    setLoading(false);
   };
 
   return (
@@ -113,6 +140,14 @@ function RecordAnswerSection({
           }}
         />
       </div>
+
+      {/* Debug info - remove this after testing */}
+      {userAnswer && (
+        <div className="mt-4 p-2 bg-blue-50 rounded max-w-md text-sm">
+          <strong>Current Answer:</strong> {userAnswer.substring(0, 100)}...
+        </div>
+      )}
+      
       <Button
         disabled={loading}
         variant="outline"
@@ -130,6 +165,10 @@ function RecordAnswerSection({
           </h2>
         )}
       </Button>
+
+      {loading && (
+        <p className="text-blue-600">Processing your answer...</p>
+      )}
     </div>
   );
 }
