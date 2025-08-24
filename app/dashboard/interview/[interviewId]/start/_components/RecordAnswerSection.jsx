@@ -45,29 +45,33 @@ function RecordAnswerSection({
     setResults([]);
   }, [activeQuestionIndex]);
 
-  // Modified this useEffect to prevent multiple calls
-  useEffect(() => {
-    if (!isRecording && userAnswer?.length > 10) {
-      // Add a small delay and check if we're not already processing
-      const timer = setTimeout(() => {
-        if (!loading) {
-          UpdateUserAnswer();
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isRecording, userAnswer]); // Added isRecording as dependency
+  // // Modified this useEffect to prevent multiple calls
+  // useEffect(() => {
+  //   if (!isRecording && userAnswer?.length > 10) {
+  //     // Add a small delay and check if we're not already processing
+  //     const timer = setTimeout(() => {
+  //       if (!loading) {
+  //         UpdateUserAnswer();
+  //       }
+  //     }, 1000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isRecording, userAnswer]); // Added isRecording as dependency
 
-  const StartStopRecording = async () => {
-    if (isRecording) {
-      stopSpeechToText();
-    } else {
-      // Clear any previous results before starting new recording
-      setUserAnswer("");
-      setResults([]);
-      startSpeechToText();
+const StartStopRecording = async () => {
+  if (isRecording) {
+    stopSpeechToText();
+
+    // ✅ Only process when user explicitly clicks Stop
+    if (userAnswer?.length > 0) {
+      await UpdateUserAnswer();
     }
-  };
+  } else {
+    setUserAnswer("");
+    setResults([]);
+    startSpeechToText();
+  }
+};
 
   const UpdateUserAnswer = async () => {
     console.log("Processing answer:", userAnswer);
