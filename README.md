@@ -1,7 +1,15 @@
 # MockMantra 🎤
 
-MockMantra is an AI-powered mock interview platform that generates **role-specific verbal interview questions** based on job position, description, and experience. Candidates can practice with their mic & webcam, review recordings, and improve like it’s a real interview.
+MockMantra allows users to customize their interview experience by selecting preferences such as the type of round, role, technology stack, and experience level. This tailored approach ensures that the AI generates relevant and challenging questions suited to the user's specific needs, thereby enhancing interview preparation.
 
+Key points
+MockMantra enables users to customize their interview experience.
+Users can select their preferred interview round type for tailored practice.
+The system allows specifying the role to focus interview questions.
+Users can define the technology stack relevant to their target job.
+The platform supports setting the desired experience level for realistic scenarios.
+AI generates relevant and challenging interview questions based on user preferences.
+Customization ensures questions are well-suited to the user's unique requirements.
 ---
 
 ## ✨ Features
@@ -20,9 +28,4 @@ MockMantra is an AI-powered mock interview platform that generates **role-specif
 
 ---
 
-## 🚀 Getting Started
-```bash
-git clone https://github.com/your-username/mockmantra.git
-cd mockmantra
-npm install
-npm run dev
+
