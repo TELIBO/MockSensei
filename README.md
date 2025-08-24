@@ -1,31 +1,39 @@
-# MockMantra 🎤
+# MockMantra 🎤💼
 
-MockMantra allows users to customize their interview experience by selecting preferences such as the type of round, role, technology stack, and experience level. This tailored approach ensures that the AI generates relevant and challenging questions suited to the user's specific needs, thereby enhancing interview preparation.
+MockMantra is an AI-powered interview prep platform that helps you practice interviews in a way that actually feels tailored to you.  
+Instead of generic questions, you get to **choose your own path** – whether it’s the type of round, role, tech stack, or even experience level – and the system adjusts everything around your preferences.
 
-Key points
-MockMantra enables users to customize their interview experience.
-Users can select their preferred interview round type for tailored practice.
-The system allows specifying the role to focus interview questions.
-Users can define the technology stack relevant to their target job.
-The platform supports setting the desired experience level for realistic scenarios.
-AI generates relevant and challenging interview questions based on user preferences.
-Customization ensures questions are well-suited to the user's unique requirements.
----
-
-## ✨ Features
-- 🎯 Job-tailored AI interview questions  
-- 🎤 Verbal practice with mic & webcam  
-- 🤖 Sample answers for guidance  
-- 📊 Feedback & analysis (coming soon)  
+👉 Live here: [mock-mantra-sanjay-sajnani.vercel.app](https://mock-mantra-sanjay-sajnani.vercel.app)
 
 ---
 
-## 🛠️ Tech Stack
-- Next.js, React, TailwindCSS, shadcn/ui  
-- react-webcam, react-hook-speech-to-text  
-- Gemini API / Hugging Face / OpenAI (configurable)  
-- Vercel for deployment  
+## ✨ What you can do with MockMantra
+
+- **Pick your interview style** – HR, technical, or even behavioral rounds.  
+- **Focus on your role** – frontend, backend, data science, or whatever you’re aiming for.  
+- **Practice with your stack** – React, Next.js, Node.js, Java, and more.  
+- **Set your level** – fresher, mid-level, or senior – and get questions that match.  
+- **AI-generated questions** – challenging, relevant, and never completely the same.  
+- **Voice answers** – record your responses directly and get instant feedback.  
+- **AI feedback** – every answer gets a rating out of 5 plus suggestions to improve.  
+- **Track your growth** – all answers and feedback are stored so you can see your progress.  
 
 ---
 
+## 🛠 Tech behind it
 
+- **Next.js** (React + Tailwind + shadcn/ui)  
+- **Clerk** for authentication  
+- **Neon + Drizzle ORM** for database  
+- **Gemini API** for question generation + feedback  
+- **Vercel** for deployment  
+
+---
+
+## 🚀 Getting started locally
+
+Clone it:
+
+```bash
+git clone https://github.com/your-username/mockmantra.git
+cd mockmantra
