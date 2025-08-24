@@ -174,4 +174,3 @@ const StartStopRecording = async () => {
 }
 export default RecordAnswerSection;
 
-export default RecordAnswerSection;
