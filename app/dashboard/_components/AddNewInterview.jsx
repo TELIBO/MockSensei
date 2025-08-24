@@ -48,7 +48,7 @@ Job position: ${jobPosition},
 Interview round: ${interviewRound},
 Job Description: ${jobDesc},
 Years of Experience: ${jobExperience}.
-Based on the job position, description, and experience, give us exactly ${jobQuestions} interview questions with their answers.
+Based on the job position, description, and experience, give us exactly ${jobQuestions} verbal interview questions with their answers.
 Return ONLY a valid JSON array of objects, where each object has exactly:
 - "question": string
 - "answer": string
