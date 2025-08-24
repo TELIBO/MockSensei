@@ -1,8 +1,7 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import React, { useState, useEffect, useRef, useCallback, memo } from "react";
+import React, { useEffect, useState } from "react";
 import Webcam from "react-webcam";
 import useSpeechToText from "react-hook-speech-to-text";
 import { Mic, StopCircle } from "lucide-react";
@@ -13,191 +12,166 @@ import { UserAnswer } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 
-// Custom Hook for recording and processing logic
-const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, interviewData }) => {
-    const [userAnswer, setUserAnswer] = useState("");
-    const userAnswerRef = useRef(""); // Use ref to hold the latest value for async operations
-    const [isProcessing, setIsProcessing] = useState(false);
-    const { user } = useUser();
+function RecordAnswerSection({
+  mockInterviewQuestion,
+  activeQuestionIndex,
+  interviewData,
+}) {
+  const [userAnswer, setUserAnswer] = useState("");
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const {
+    error,
+    interimResult,
+    isRecording,
+    results,
+    startSpeechToText,
+    stopSpeechToText,
+    setResults,
+  } = useSpeechToText({
+    continuous: true,
+    useLegacyResults: false,
+  });
 
-    const {
-        error,
-        isRecording,
-        results,
-        startSpeechToText,
-        stopSpeechToText,
-        setResults,
-    } = useSpeechToText({
-        continuous: true,
-        useLegacyResults: false,
-    });
+  useEffect(() => {
+    results?.map((result) =>
+      setUserAnswer((prevAns) => prevAns + result?.transcript)
+    );
+  }, [results]);
 
-    // Append new speech results to the answer
-    useEffect(() => {
-        if (results && results.length > 0) {
-            const newTranscript = results.map((result) => result.transcript).join(" ");
-            const updatedAnswer = userAnswerRef.current + newTranscript;
-            setUserAnswer(updatedAnswer);
-            userAnswerRef.current = updatedAnswer;
-            setResults([]); // Clear results to prevent reprocessing
+  // Clear answers when question changes
+  useEffect(() => {
+    setUserAnswer("");
+    setResults([]);
+  }, [activeQuestionIndex]);
+
+  // Modified this useEffect to prevent multiple calls
+  useEffect(() => {
+    if (!isRecording && userAnswer?.length > 10) {
+      // Add a small delay and check if we're not already processing
+      const timer = setTimeout(() => {
+        if (!loading) {
+          UpdateUserAnswer();
         }
-    }, [results, setResults]);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isRecording, userAnswer]); // Added isRecording as dependency
 
-    // Reset state when the active question changes
-    useEffect(() => {
+const StartStopRecording = async () => {
+    if (isRecording) {
+      stopSpeechToText();
+    } else {
+      // Clear any previous results before starting new recording
+      setUserAnswer("");
+      setResults([]);
+      startSpeechToText();
+    }
+  };
+
+  const UpdateUserAnswer = async () => {
+    console.log("Processing answer:", userAnswer);
+    setLoading(true);
+    
+    try {
+      const feedbackPrompt =
+        "Question: " +
+        mockInterviewQuestion[activeQuestionIndex]?.question +
+        ", User Answer: " +
+        userAnswer +
+        ". Based only on this question and answer, please provide: " +
+        "1) A numeric rating out of 5 for the answer. " +
+        "2) Feedback highlighting specific areas for improvement, if any, in 3 to 5 concise lines. " +
+        "Return ONLY a valid JSON object with two fields: 'rating' (number) and 'feedback' (string).";
+
+      const result = await chatSession.sendMessage(feedbackPrompt);
+      const mockJsonResp = result.response
+        .text()
+        .replace("json", "")
+        .replace("", "");
+      
+      console.log("AI Response:", mockJsonResp);
+      
+      const JsonFeedbackResp = JSON.parse(mockJsonResp);
+      
+      const resp = await db.insert(UserAnswer).values({
+        mockIdRef: interviewData?.mockId,
+        question: mockInterviewQuestion[activeQuestionIndex]?.question,
+        correctAns: mockInterviewQuestion[activeQuestionIndex]?.answer,
+        userAns: userAnswer,
+        feedback: JsonFeedbackResp?.feedback,
+        rating: JsonFeedbackResp?.rating,
+        userEmail: user?.primaryEmailAddress?.emailAddress,
+        createdAt: moment().format("DD-MM-yyyy"),
+      });
+
+      console.log("Database insert result:", resp);
+
+      if (resp) {
+        toast.success("User Answer recorded successfully");
         setUserAnswer("");
-        userAnswerRef.current = "";
         setResults([]);
-        if (isRecording) {
-            stopSpeechToText();
-        }
-    }, [activeQuestionIndex, setResults, isRecording, stopSpeechToText]);
+      }
+    } catch (error) {
+      console.error("Error in UpdateUserAnswer:", error);
+      toast.error("Failed to save answer: " + error.message);
+    } finally {
+      setResults([]);
+      setLoading(false);
+    }
+  };
 
-    // Handle speech recognition errors
-    useEffect(() => {
-        if (error) {
-            toast.error(error);
-        }
-    }, [error]);
-
-    const updateUserAnswerInDB = useCallback(async () => {
-        if (userAnswerRef.current.length < 10) {
-            toast.warning("Your answer is too short. Please provide a more detailed response.");
-            setIsProcessing(false); // Release processing lock
-            return;
-        }
-        setIsProcessing(true);
-
-        const feedbackPrompt =
-            `Question: "${mockInterviewQuestion[activeQuestionIndex]?.question}", User Answer: "${userAnswerRef.current}". ` +
-            "Based on this question and answer, please provide: " +
-            "1) A numeric rating for the answer on a scale of 1 to 5. " +
-            "2) Concise feedback (3-5 lines) on areas for improvement. " +
-            "Return ONLY a valid JSON object with two fields: 'rating' (number) and 'feedback' (string).";
-
-        try {
-            const result = await chatSession.sendMessage(feedbackPrompt);
-            const responseText = result.response.text();
-            
-            // Robust JSON parsing to find the JSON object within the response text
-            const jsonStringMatch = responseText.match(/\{[\s\S]*\}/);
-            if (!jsonStringMatch) {
-                throw new Error("Invalid JSON response from AI.");
-            }
-            const jsonFeedbackResp = JSON.parse(jsonStringMatch[0]);
-
-            await db.insert(UserAnswer).values({
-                mockIdRef: interviewData?.mockId,
-                question: mockInterviewQuestion[activeQuestionIndex]?.question,
-                correctAns: mockInterviewQuestion[activeQuestionIndex]?.answer,
-                userAns: userAnswerRef.current,
-                feedback: jsonFeedbackResp?.feedback,
-                rating: jsonFeedbackResp?.rating,
-                userEmail: user?.primaryEmailAddress?.emailAddress,
-                createdAt: moment().format("YYYY-MM-DD"),
-            });
-
-            setUserAnswer("");
-            userAnswerRef.current = "";
-
-        } catch (err) {
-            console.error("Error processing answer:", err);
-            // Re-throw the error to be caught by toast.promise
-            throw new Error("Failed to process your answer. Please try again.");
-        } finally {
-            setIsProcessing(false);
-        }
-    }, [activeQuestionIndex, interviewData, mockInterviewQuestion, user]);
-
-    const startStopRecording = async () => {
-        if (isRecording) {
-            stopSpeechToText();
-            // Use toast.promise for better UX during submission
-            toast.promise(updateUserAnswerInDB(), {
-                loading: "Evaluating your answer...",
-                success: "Answer submitted successfully!",
-                error: (err) => err.message || "An unexpected error occurred.",
-            });
-        } else {
-            setUserAnswer("");
-            userAnswerRef.current = "";
-            startSpeechToText();
-        }
-    };
-
-    return {
-        userAnswer,
-        isRecording,
-        isProcessing,
-        startStopRecording,
-    };
-};
-
-// Memoized Webcam component to prevent unnecessary re-renders
-const WebcamDisplay = memo(() => (
-    <div className="relative flex flex-col mt-20 justify-center items-center bg-black rounded-lg p-5 h-[300px] w-full max-w-lg md:h-[500px] md:w-[500px]">
+  return (
+    <div className="flex items-center justify-center flex-col">
+      <div className="flex flex-col mt-20 justify-center items-center bg-black rounded-lg p-5">
         <Image
-            src={"/webcam.png"}
-            width={200}
-            height={200}
-            alt="webcam overlay"
-            className="absolute z-0"
-            priority
+          src={"/webcam.png"}
+          width={200}
+          height={200}
+          alt="webcam"
+          className="absolute"
         />
         <Webcam
-            mirrored={true}
-            style={{
-                height: "100%",
-                width: "100%",
-                zIndex: 10,
-                objectFit: "cover",
-                borderRadius: '8px'
-            }}
+          mirrored={true}
+          style={{
+            height: 500,
+            width: 500,
+            zIndex: 10,
+          }}
         />
-    </div>
-));
-WebcamDisplay.displayName = 'WebcamDisplay';
+      </div>
 
-
-// Main Component
-function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, interviewData }) {
-    const { userAnswer, isRecording, isProcessing, startStopRecording } = useAnswerRecorder({
-        mockInterviewQuestion,
-        activeQuestionIndex,
-        interviewData,
-    });
-
-    return (
-        <div className="flex items-center justify-center flex-col w-full">
-            <WebcamDisplay />
-
-            <Button
-                disabled={isProcessing}
-                variant="outline"
-                className="my-10"
-                onClick={startStopRecording}
-            >
-                {isRecording? (
-                    <h2 className="text-red-600 animate-pulse flex gap-2 items-center">
-                        <StopCircle />
-                        Stop Recording
-                    </h2>
-                ) : (
-                    <h2 className="text-primary flex gap-2 items-center">
-                        <Mic /> Record Answer
-                    </h2>
-                )}
-            </Button>
-
-            {/* Display live transcript for user feedback */}
-            {userAnswer && (
-                <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner w-full max-w-2xl text-sm text-gray-700">
-                    <strong className="block mb-2">Your answer:</strong>
-                    <p className="whitespace-pre-wrap">{userAnswer}</p>
-                </div>
-            )}
+      {/* Debug info - remove this after testing */}
+      {userAnswer && (
+        <div className="mt-4 p-2 bg-blue-50 rounded max-w-md text-sm">
+          <strong>Current Answer:</strong> {userAnswer.substring(0, 100)}...
         </div>
-    );
+      )}
+      
+      <Button
+        disabled={loading}
+        variant="outline"
+        className="my-10"
+        onClick={StartStopRecording}
+      >
+        {isRecording ? (
+          <h2 className="text-red-600 animate-pulse flex gap-2 items-center">
+            <StopCircle />
+            Stop Recording
+          </h2>
+        ) : (
+          <h2 className="text-primary flex gap-2 items-center">
+            <Mic /> Record Answer
+          </h2>
+        )}
+      </Button>
+
+      {loading && (
+        <p className="text-blue-600">Processing your answer...</p>
+      )}
+    </div>
+  );
 }
+export default RecordAnswerSection;
 
 export default RecordAnswerSection;
