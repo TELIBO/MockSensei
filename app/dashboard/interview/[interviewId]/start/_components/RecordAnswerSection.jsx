@@ -34,24 +34,24 @@ const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, intervi
 
     // Append new speech results to the answer
     useEffect(() => {
-        if (results.length > 0) {
+        if (results && results.length > 0) {
             const newTranscript = results.map((result) => result.transcript).join(" ");
             const updatedAnswer = userAnswerRef.current + newTranscript;
             setUserAnswer(updatedAnswer);
             userAnswerRef.current = updatedAnswer;
-            setResults(); // Clear results to prevent reprocessing
+            setResults([]); // Clear results to prevent reprocessing
         }
-    },);
+    }, [results, setResults]);
 
     // Reset state when the active question changes
     useEffect(() => {
         setUserAnswer("");
         userAnswerRef.current = "";
-        setResults();
+        setResults([]);
         if (isRecording) {
             stopSpeechToText();
         }
-    },);
+    }, [activeQuestionIndex, setResults, isRecording, stopSpeechToText]);
 
     // Handle speech recognition errors
     useEffect(() => {
@@ -63,6 +63,7 @@ const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, intervi
     const updateUserAnswerInDB = useCallback(async () => {
         if (userAnswerRef.current.length < 10) {
             toast.warning("Your answer is too short. Please provide a more detailed response.");
+            setIsProcessing(false); // Release processing lock
             return;
         }
         setIsProcessing(true);
@@ -78,12 +79,12 @@ const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, intervi
             const result = await chatSession.sendMessage(feedbackPrompt);
             const responseText = result.response.text();
             
-            // Robust JSON parsing
-            const jsonMatch = responseText.match(/\{*\}/);
-            if (!jsonMatch) {
+            // Robust JSON parsing to find the JSON object within the response text
+            const jsonStringMatch = responseText.match(/\{[\s\S]*\}/);
+            if (!jsonStringMatch) {
                 throw new Error("Invalid JSON response from AI.");
             }
-            const jsonFeedbackResp = JSON.parse(jsonMatch);
+            const jsonFeedbackResp = JSON.parse(jsonStringMatch[0]);
 
             await db.insert(UserAnswer).values({
                 mockIdRef: interviewData?.mockId,
@@ -99,15 +100,14 @@ const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, intervi
             setUserAnswer("");
             userAnswerRef.current = "";
 
-        } catch (err) { {
+        } catch (err) {
             console.error("Error processing answer:", err);
             // Re-throw the error to be caught by toast.promise
             throw new Error("Failed to process your answer. Please try again.");
-        }
         } finally {
             setIsProcessing(false);
         }
-    },);
+    }, [activeQuestionIndex, interviewData, mockInterviewQuestion, user]);
 
     const startStopRecording = async () => {
         if (isRecording) {
@@ -116,9 +116,7 @@ const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, intervi
             toast.promise(updateUserAnswerInDB(), {
                 loading: "Evaluating your answer...",
                 success: "Answer submitted successfully!",
-                error: (err) => err.message |
-
-| "An unexpected error occurred.",
+                error: (err) => err.message || "An unexpected error occurred.",
             });
         } else {
             setUserAnswer("");
@@ -137,7 +135,7 @@ const useAnswerRecorder = ({ mockInterviewQuestion, activeQuestionIndex, intervi
 
 // Memoized Webcam component to prevent unnecessary re-renders
 const WebcamDisplay = memo(() => (
-    <div className="relative flex flex-col mt-20 justify-center items-center bg-black rounded-lg p-5 h-[500px] w-[500px]">
+    <div className="relative flex flex-col mt-20 justify-center items-center bg-black rounded-lg p-5 h-[300px] w-full max-w-lg md:h-[500px] md:w-[500px]">
         <Image
             src={"/webcam.png"}
             width={200}
@@ -153,6 +151,7 @@ const WebcamDisplay = memo(() => (
                 width: "100%",
                 zIndex: 10,
                 objectFit: "cover",
+                borderRadius: '8px'
             }}
         />
     </div>
@@ -169,7 +168,7 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
     });
 
     return (
-        <div className="flex items-center justify-center flex-col">
+        <div className="flex items-center justify-center flex-col w-full">
             <WebcamDisplay />
 
             <Button
@@ -192,9 +191,9 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
 
             {/* Display live transcript for user feedback */}
             {userAnswer && (
-                <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner max-w-2xl text-sm text-gray-700">
+                <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner w-full max-w-2xl text-sm text-gray-700">
                     <strong className="block mb-2">Your answer:</strong>
-                    <p>{userAnswer}</p>
+                    <p className="whitespace-pre-wrap">{userAnswer}</p>
                 </div>
             )}
         </div>
