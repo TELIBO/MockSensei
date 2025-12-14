@@ -35,6 +35,7 @@ function AddNewInterview() {
   const [jobExperience, setJobExperience] = useState();
   const [loading, setLoading] = useState(false);
   const [jsonResponse, setJsonResponse] = useState([]);
+  const [jobQuestions,setJobQuestions] = useState();
   const router = useRouter();
   const { user } = useUser();
   const onSubmit = async (e) => {
@@ -42,18 +43,17 @@ function AddNewInterview() {
     e.preventDefault();
     console.log(jobPosition, jobDesc, jobExperience, interviewRound);
 
-    const InputPrompt =
-      "Job position: " +
-      jobPosition +
-      ", Interview round: " +
-      interviewRound +
-      ", Job Description: " +
-      jobDesc +
-      ", Years of Experience : " +
-      jobExperience +
-      " , Depends on Job Position, Job Description & Years of Experience give us " +
-      process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT +
-      " Interview question along with Answer in JSON format, Give us question and answer field on JSON only nothing else";
+   const InputPrompt = `
+Job position: ${jobPosition},
+Interview round: ${interviewRound},
+Job Description: ${jobDesc},
+Years of Experience: ${jobExperience}.
+Based on the job position, description, and experience, give us exactly ${jobQuestions} verbal interview questions with their answers.
+Return ONLY a valid JSON array of objects, where each object has exactly:
+- "question": string
+- "answer": string
+No markdown, no explanations, no extra text — just the JSON array.
+`;
 
     const result = await chatSession.sendMessage(InputPrompt);
     const MockJsonResp = result.response
@@ -158,6 +158,17 @@ function AddNewInterview() {
                       max="100"
                       required
                       onChange={(event) => setJobExperience(event.target.value)}
+                    />
+                  </div>
+                  <div className=" my-3">
+                    <label> Number of Question You Want Between 1-10 </label>
+                    <Input
+                      placeholder="Ex.5"
+                      type="number"
+                      min="1"
+                      max="10"
+                      required
+                      onChange={(event) => setJobQuestions(event.target.value)}
                     />
                   </div>
                 </div>
