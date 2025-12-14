@@ -8,7 +8,7 @@ const {
   const genAI = new GoogleGenerativeAI(apiKey);
   
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
   });
   
   const generationConfig = {
@@ -16,7 +16,7 @@ const {
     topP: 0.95,
     topK: 64,
     maxOutputTokens: 8192,
-    responseMimeType: "text/plain",
+    responseMimeType: "application/json",
   };
   
   const safetySettings = [

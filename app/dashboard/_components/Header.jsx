@@ -30,16 +30,7 @@ function Header() {
       </li>
     </Link>
 
-    {/* <Link href={"/dashboard/upgrade"}>
-      <li
-        className={`hover:text-blue-800 hover:font-bold transition-all
-        cursor-pointer
-        ${path == "/dashboard/upgrade" && "text-blue-800 font-bold"}
-        `}
-      >
-        Upgrade
-      </li>
-    </Link> */}
+   
     <Link href={"/#howItWorks"}>
       <li
         className={`hover:text-blue-800 hover:font-bold transition-all
